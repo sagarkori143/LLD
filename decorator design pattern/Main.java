@@ -28,7 +28,7 @@ class VegDelight extends BasePizza{
 // Now I want toppings on my pizzas. For that I will craete a decorator. A decorated works two ways. It extend or inherits a class and at the same time its childrens
 // use the parent class as a data member that means it has both the is-a relation and the has-a a relation. 
 
- abstract class ToppingsDecorator extends BasePizza{
+abstract class ToppingsDecorator extends BasePizza{
   BasePizza pizza;
   ToppingsDecorator(BasePizza pizza){
     this.pizza=pizza;

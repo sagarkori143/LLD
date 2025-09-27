@@ -313,7 +313,7 @@ public:
             }
         }
     }
-    
+     
     int getCurrentFloor() {
         return currentFloor;
     }
