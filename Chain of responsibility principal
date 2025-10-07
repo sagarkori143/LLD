@@ -1,0 +1,244 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+/**
+ * SIMPLE CHAIN OF RESPONSIBILITY PATTERN - LOGGER SYSTEM
+ * 
+ * Chain: InfoLogger -> DebugLogger -> ErrorLogger
+ * 
+ * How it works:
+ * 1. Each logger checks if it can handle the message level
+ * 2. If yes, it processes the message  
+ * 3. Then passes the message to next logger in chain
+ * 4. This continues until end of chain
+ */
+
+// Base Logger class
+class Logger {
+protected:
+    int level;           // Logger level (1=INFO, 2=DEBUG, 3=ERROR)
+    Logger* nextLogger;  // Next logger in chain
+    
+public:
+    Logger(int level) {
+        this->level = level;
+        this->nextLogger = nullptr;
+    }
+    
+    // Set next logger in chain
+    void setNext(Logger* next) {
+        nextLogger = next;
+    }
+    
+    // Main method - processes or passes to next logger
+    void logMessage(int msgLevel, string message) {
+        // If this logger can handle this level, process it
+        if (msgLevel >= this->level) {
+            write(message);
+        }
+        
+        // Always pass to next logger if it exists
+        if (nextLogger != nullptr) {
+            nextLogger->logMessage(msgLevel, message);
+        }
+    }
+    
+    // Pure virtual - each logger implements its own way
+    virtual void write(string message) = 0;
+};
+
+// INFO Logger - prints to console
+class InfoLogger : public Logger {
+public:
+    InfoLogger() : Logger(1) {}  // Level 1 = INFO
+    
+    void write(string message) override {
+        cout << "[INFO] " << message << endl;
+    }
+};
+
+// DEBUG Logger - prints with debug format
+class DebugLogger : public Logger {
+public:
+    DebugLogger() : Logger(2) {}  // Level 2 = DEBUG
+    
+    void write(string message) override {
+        cout << "[DEBUG] " << message << endl;
+    }
+};
+
+// ERROR Logger - prints errors with special format
+class ErrorLogger : public Logger {
+public:
+    ErrorLogger() : Logger(3) {}  // Level 3 = ERROR
+    
+    void write(string message) override {
+        cout << "[ERROR] *** " << message << " ***" << endl;
+    }
+};
+
+// Helper function to create the logger chain
+Logger* createLoggerChain() {
+    // Create individual loggers
+    Logger* infoLogger = new InfoLogger();
+    Logger* debugLogger = new DebugLogger();  
+    Logger* errorLogger = new ErrorLogger();
+    
+    // Build the chain: INFO -> DEBUG -> ERROR
+    infoLogger->setNext(debugLogger);
+    debugLogger->setNext(errorLogger);
+    
+    return infoLogger;  // Return first logger in chain
+}
+
+// Simple demonstration
+void demonstrateLogging() {
+    cout << "=== Simple Logger Chain Demo ===" << endl;
+    
+    // Create the logger chain
+    Logger* loggerChain = createLoggerChain();
+    
+    cout << "\n1. Sending INFO message (level 1):" << endl;
+    loggerChain->logMessage(1, "User logged in successfully");
+    
+    cout << "\n2. Sending DEBUG message (level 2):" << endl;
+    loggerChain->logMessage(2, "Database connection established");
+    
+    cout << "\n3. Sending ERROR message (level 3):" << endl;
+    loggerChain->logMessage(3, "Connection timeout occurred");
+    
+    // Cleanup
+    delete loggerChain;
+}
+
+int main() {
+    cout << "Chain of Responsibility Pattern - Logger System" << endl;
+    cout << "==============================================" << endl;
+    
+    demonstrateLogging();
+    
+    cout << "\nHow it works:" << endl;
+    cout << "1. Each logger handles messages >= its level" << endl;
+    cout << "2. INFO logger handles all messages (1, 2, 3)" << endl;
+    cout << "3. DEBUG logger handles DEBUG and ERROR (2, 3)" << endl;
+    cout << "4. ERROR logger handles only ERROR (3)" << endl;
+    cout << "5. All loggers in chain get a chance to process" << endl;
+    
+    return 0;
+}
+
+// Application class to demonstrate logging
+class Application {
+public:
+    void runApplication() {
+        cout << "\n🚀 Starting Application..." << endl;
+        
+        LOG_INFO("Application started successfully");
+        
+        // Simulate some operations
+        processUser("John Doe");
+        calculateSomething(10, 0); // This will cause an error
+        debugComplexOperation();
+        
+        LOG_INFO("Application finished");
+    }
+    
+private:
+    void processUser(const string& username) {
+        LOG_INFO("Processing user: " + username);
+        LOG_DEBUG("Validating user credentials for: " + username);
+        LOG_DEBUG("User " + username + " authenticated successfully");
+        LOG_INFO("User " + username + " logged in");
+    }
+    
+    void calculateSomething(int a, int b) {
+        LOG_DEBUG("Starting calculation with values: a=" + to_string(a) + ", b=" + to_string(b));
+        
+        if (b == 0) {
+            LOG_ERROR("Division by zero attempted! Cannot divide " + to_string(a) + " by " + to_string(b));
+            return;
+        }
+        
+        int result = a / b;
+        LOG_INFO("Calculation completed. Result: " + to_string(result));
+    }
+    
+    void debugComplexOperation() {
+        LOG_DEBUG("Starting complex operation...");
+        LOG_DEBUG("Step 1: Initializing data structures");
+        LOG_DEBUG("Step 2: Processing algorithms");
+        LOG_DEBUG("Step 3: Validating results");
+        LOG_DEBUG("Complex operation completed successfully");
+    }
+};
+
+// Demo functions
+void demonstrateBasicLogging() {
+    cout << "\n🔧 ================================" << endl;
+    cout << "   BASIC LOGGING DEMONSTRATION   " << endl;
+    cout << "================================" << endl;
+    
+    // Get logging manager
+    LoggingManager* logger = LoggingManager::getInstance();
+    
+    // Different types of logs
+    logger->info("This is an informational message");
+    logger->debug("This is a debug message with detailed information");
+    logger->error("This is an error message - something went wrong!");
+    
+    logger->info("User login attempt");
+    logger->debug("Checking credentials in database");
+    logger->error("Invalid password provided");
+}
+
+void demonstrateCustomLoggerChain() {
+    cout << "\n🔧 ================================" << endl;
+    cout << "   CUSTOM LOGGER CHAIN DEMO      " << endl;
+    cout << "================================" << endl;
+    
+    // Build custom logger chain
+    LoggerChainBuilder builder;
+    Logger* customChain = builder
+        .addErrorLogger()           // Only errors
+        .addFileLogger("errors.log") // Errors and debug to file
+        .build();
+    
+    // Set custom chain
+    LoggingManager::getInstance()->setCustomLoggerChain(customChain);
+    
+    LOG_INFO("This info won't show (only ERROR level and above)");
+    LOG_DEBUG("This debug will go to file only");
+    LOG_ERROR("This error will show on console and go to file");
+    
+    // Reset to default chain
+    LoggingManager* newManager = LoggingManager::getInstance();
+    delete newManager; // Reset for demo (in real app, don't delete singleton)
+}
+
+void demonstrateApplicationLogging() {
+    cout << "\n🔧 ================================" << endl;
+    cout << "   APPLICATION LOGGING DEMO      " << endl;
+    cout << "================================" << endl;
+    
+    Application app;
+    app.runApplication();
+}
+
+int main() {
+    cout << "🔍 LOGGING SYSTEM WITH CHAIN OF RESPONSIBILITY PATTERN" << endl;
+    cout << "=====================================================" << endl;
+    
+    // Demonstrate different aspects of the logging system
+    demonstrateBasicLogging();
+    demonstrateCustomLoggerChain();
+    demonstrateApplicationLogging();
+    
+    cout << "\n✅ Logging demonstration completed!" << endl;
+    cout << "Check the generated log files:" << endl;
+    cout << "  - application.log (INFO and DEBUG messages)" << endl;
+    cout << "  - debug.log (DEBUG messages)" << endl;
+    cout << "  - errors.log (ERROR messages from custom chain)" << endl;
+    
+    return 0;
+}

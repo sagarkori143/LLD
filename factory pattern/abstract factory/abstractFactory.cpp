@@ -29,6 +29,10 @@ using namespace std;
 // Abstract Car interface
 class Car {
 public:
+    virtual int func(){
+        cout<<"this is base func"<<endl;
+        return 0;
+    }
     virtual ~Car() = default;
     virtual void drive() = 0;
     virtual string getModel() = 0;
