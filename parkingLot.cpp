@@ -3,6 +3,18 @@ using namespace std;
 enum class VehicleType { Car, Bike, Truck };
 enum class SpotType { Car, Bike, Truck };
 
+class PricingStrategy {
+    public:
+    virtual double calculate(int hours) = 0;
+    virtual ~PricingStrategy() = default;
+};
+class HourlyPricing : public PricingStrategy {
+    public: double calculate(int hours) override { return hours * 10; }
+};
+class DailyPricing : public PricingStrategy {
+    public: double calculate(int hours) override { return ((hours + 23) / 24) * 100; }
+};
+
 
 class Vehicle{
     private:
@@ -53,6 +65,7 @@ class Ticket{
         this->spot=spot;
         this->entryTime=entryTime;
     }
+    ParkingSpot* getSpot(){ return spot; }
 };
 
 class Level{
@@ -78,11 +91,12 @@ class ParkingLot{
     private:
     vector<Level*> levels;
     int ticketId;
+    PricingStrategy* pricing;
     public:
-    ParkingLot(){};
+    ParkingLot(){ ticketId = 0; pricing = nullptr; }
+    void setPricing(PricingStrategy* p){ pricing = p; }
     void addLevel(Level* level){
         levels.push_back(level);
-        ticketId=0;
     }
     SpotType spotFor(VehicleType v){
         switch(v){
@@ -113,11 +127,18 @@ class ParkingLot{
         spot->assignVehicle(vehicle);
         return generateTicket(vehicle, spot);
     }
+
+    // Car leaves: free the spot and charge based on the chosen strategy
+    double unpark(Ticket* ticket, int hoursStayed){
+        ticket->getSpot()->removeVehicle();   // frees the spot (isAvailable = true)
+        return pricing->calculate(hoursStayed);
+    }
 };
 
 int main(){
-    // 1. Build the lot
+    // 1. Build the lot + pick a pricing strategy
     ParkingLot lot;
+    lot.setPricing(new HourlyPricing());   // swap to new DailyPricing() to change billing
 
     // 2. Add a level and put some spots on it
     Level* l1 = new Level(1);
@@ -140,7 +161,11 @@ int main(){
     Ticket* ticket = lot.bookSpot(spot, car);
     cout << "Parked. Ticket issued.\n";
 
-    // 6. Try booking another car -> should take spot 103
+    // 6. Car leaves after 3 hours -> spot freed, fee charged via strategy
+    double fee = lot.unpark(ticket, 3);
+    cout << "Car left. Fee = " << fee << "\n";
+
+    // 7. Now that spot is free again, another car should find it
     Vehicle* car2 = new Vehicle(VehicleType::Car, 2);
     ParkingSpot* spot2 = lot.findParkingSpot(VehicleType::Car);
     cout << (spot2 ? "Second car found a spot\n" : "No spot for second car\n");
