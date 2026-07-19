@@ -8,6 +8,7 @@ class PricingStrategy {
     virtual double calculate(int hours) = 0;
     virtual ~PricingStrategy() = default;
 };
+
 class HourlyPricing : public PricingStrategy {
     public: double calculate(int hours) override { return hours * 10; }
 };
@@ -23,6 +24,14 @@ class Vehicle{
     public: Vehicle(VehicleType type, int id){
         this->id=id;
         this->type=type;
+    }
+    VehicleType getType(){ return type; }
+};
+
+class VehicleFactory {
+    public:
+    Vehicle* create(VehicleType type, int id){
+        return new Vehicle(type, id);   // later: Car->1 spot, Truck->2 spots, etc.
     }
 };
 
@@ -147,8 +156,9 @@ int main(){
     l1->addSpot(new ParkingSpot(103, SpotType::Car));
     lot.addLevel(l1);
 
-    // 3. A car arrives
-    Vehicle* car = new Vehicle(VehicleType::Car, 1);
+    // 3. A car arrives (built via the factory, not `new Vehicle`)
+    VehicleFactory factory;
+    Vehicle* car = factory.create(VehicleType::Car, 1);
 
     // 4. Find a matching free spot
     ParkingSpot* spot = lot.findParkingSpot(VehicleType::Car);
@@ -166,7 +176,7 @@ int main(){
     cout << "Car left. Fee = " << fee << "\n";
 
     // 7. Now that spot is free again, another car should find it
-    Vehicle* car2 = new Vehicle(VehicleType::Car, 2);
+    Vehicle* car2 = factory.create(VehicleType::Car, 2);
     ParkingSpot* spot2 = lot.findParkingSpot(VehicleType::Car);
     cout << (spot2 ? "Second car found a spot\n" : "No spot for second car\n");
 
