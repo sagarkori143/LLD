@@ -1,0 +1,50 @@
+// Portable shim for GCC's <bits/stdc++.h> on Apple clang / libc++.
+// Lets competitive-style code that does `#include <bits/stdc++.h>` compile on macOS.
+#pragma once
+
+// C++ library
+#include <algorithm>
+#include <array>
+#include <atomic>
+#include <bitset>
+#include <chrono>
+#include <cmath>
+#include <complex>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <deque>
+#include <exception>
+#include <forward_list>
+#include <fstream>
+#include <functional>
+#include <initializer_list>
+#include <iomanip>
+#include <ios>
+#include <iostream>
+#include <istream>
+#include <iterator>
+#include <limits>
+#include <list>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <optional>
+#include <ostream>
+#include <queue>
+#include <random>
+#include <set>
+#include <sstream>
+#include <stack>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <type_traits>
+#include <typeinfo>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
