@@ -6,8 +6,6 @@ enum class Direction{
 };
 
 
-
-
 class Display{
     private:
     int displayId;
